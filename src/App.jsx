@@ -6,6 +6,7 @@ import { jsPDF } from 'jspdf'
 
 const tools = [
   { path: '/image-compressor', title: 'Kompres Gambar', desc: 'Perkecil ukuran gambar tanpa mengorbankan kualitas.', icon: ImageDown, tint: 'lavender', tag: 'Hemat ruang' },
+  { path: '/image-converter', title: 'Image Converter', desc: 'Ubah format PNG, JPG, WebP, GIF, dan BMP dengan mudah.', icon: FileImage, tint: 'mint', tag: '8 format' },
   { path: '/qr-generator', title: 'QR Code Generator', desc: 'Buat QR code kustom untuk tautan, Wi-Fi, dan lainnya.', icon: QrCode, tint: 'mint', tag: 'Mudah dibagikan' },
   { path: '/jpg-to-pdf', title: 'JPG ke PDF', desc: 'Gabungkan gambar menjadi PDF dalam beberapa klik.', icon: FileText, tint: 'peach', tag: 'Siap diunduh' },
 ]
@@ -27,6 +28,7 @@ function App() {
     <main><Routes>
       <Route path="/" element={<Home />} />
       <Route path="/image-compressor" element={<Compressor notify={notify} />} />
+      <Route path="/image-converter" element={<ImageConverter notify={notify} />} />
       <Route path="/qr-generator" element={<QrTool notify={notify} />} />
       <Route path="/jpg-to-pdf" element={<PdfTool notify={notify} />} />
       <Route path="/about" element={<InfoPage title="Tentang Toolify" eyebrow="ALAT YANG MEMUDAHKAN" text="Toolify menyatukan alat online sehari-hari dalam satu tempat yang sederhana. Kompres gambar, buat QR code, dan ubah gambar menjadi PDF langsung dari browser Anda." />} />
@@ -45,7 +47,7 @@ function Home() {
     <section className="hero"><div className="hero-glow glow-one"/><div className="hero-glow glow-two"/><div className="hero-content"><div className="eyebrow-pill"><span className="pulse-dot"/> ALAT ONLINE, TANPA RIBET</div><h1>Your Everyday Online<br /><span>Tools, Made Simple</span></h1><p>Kompres gambar, buat QR code, dan ubah gambar menjadi PDF — semua dalam satu tempat.</p><div className="hero-actions"><a className="button primary" href="#tools">Mulai gunakan <ArrowRight size={17}/></a><Link className="button secondary" to="/about">Kenali Toolify</Link></div><div className="hero-trust"><span><ShieldCheck size={16}/> Privat di perangkat Anda</span><span><Sparkles size={16}/> Gratis digunakan</span></div></div>
     <div className="hero-art" aria-hidden="true"><div className="art-orbit orbit-a"/><div className="art-orbit orbit-b"/><div className="art-center"><span className="art-spark"><Sparkles size={38} fill="currentColor"/></span></div><div className="float-card card-image"><span className="mini-icon lavender"><ImageDown size={19}/></span><div><b>image.jpg</b><small>2.4 MB → 840 KB</small></div><span className="saved">−65%</span></div><div className="float-card card-qr"><span className="mini-icon mint"><QrCode size={20}/></span><div><b>QR Code</b><small>Siap dipindai</small></div><span className="tiny-check"><Check size={13}/></span></div><div className="float-card card-pdf"><span className="mini-icon peach"><FileText size={19}/></span><div><b>dokumen.pdf</b><small>3 halaman</small></div></div><div className="art-dot dot-a"/><div className="art-dot dot-b"/></div>
     </section>
-    <section className="tool-section" id="tools"><div className="section-heading"><div><div className="eyebrow">DIRANCANG UNTUK HARIAN</div><h2>Alat praktis, hasil maksimal</h2><p>Semua yang Anda butuhkan, tanpa perlu instalasi.</p></div><div className="tools-count"><span>03</span><small>tools tersedia</small></div></div><div className="tool-grid">{tools.map((tool, i) => <ToolCard key={tool.path} tool={tool} index={i}/>)}</div><div className="ad-slot"><span className="ad-label">ADVERTISEMENT</span><div className="ad-content"><span className="ad-icon"><Sparkles size={19}/></span><div><b>Ruang untuk hal-hal baik.</b><p>Area ini mungkin menampilkan iklan di masa mendatang.</p></div><span className="ad-badge">SPONSORED SPACE</span></div></div></section>
+    <section className="tool-section" id="tools"><div className="section-heading"><div><div className="eyebrow">DIRANCANG UNTUK HARIAN</div><h2>Alat praktis, hasil maksimal</h2><p>Semua yang Anda butuhkan, tanpa perlu instalasi.</p></div><div className="tools-count"><span>04</span><small>tools tersedia</small></div></div><div className="tool-grid">{tools.map((tool, i) => <ToolCard key={tool.path} tool={tool} index={i}/>)}</div><div className="ad-slot"><span className="ad-label">ADVERTISEMENT</span><div className="ad-content"><span className="ad-icon"><Sparkles size={19}/></span><div><b>Ruang untuk hal-hal baik.</b><p>Area ini mungkin menampilkan iklan di masa mendatang.</p></div><span className="ad-badge">SPONSORED SPACE</span></div></div></section>
     <section className="privacy-banner"><div className="privacy-icon"><LockKeyhole size={22}/></div><div><h3>File Anda tetap milik Anda.</h3><p>Semua proses berlangsung langsung di browser. File tidak diunggah ke server kami.</p></div><div className="privacy-seal"><ShieldCheck size={18}/> Pemrosesan privat</div></section>
   </>
 }
@@ -87,6 +89,65 @@ function Compressor({ notify }) {
 
 function PreviewCard({ title, src, name, size, loading }) { return <div className="preview-card"><div className="preview-title"><b>{title}</b>{size != null && <span>{formatBytes(size)}</span>}</div><div className="preview-image">{loading ? <span className="spinner"/> : src ? <img src={src} alt={title}/> : <Image size={30}/>}</div><small>{name || 'Pratinjau gambar'}</small></div> }
 const download = (url, name) => { const a = document.createElement('a'); a.href = url; a.download = name; a.click() }
+
+function ImageConverter({ notify }) {
+  const [items, setItems] = useState([]), [format, setFormat] = useState('image/png'), [quality, setQuality] = useState(90), [background, setBackground] = useState('#ffffff'), [error, setError] = useState(''), [busy, setBusy] = useState(false)
+  const input = useRef(null)
+  const itemsRef = useRef(items); itemsRef.current = items
+  useEffect(() => () => itemsRef.current.forEach(item => { URL.revokeObjectURL(item.src); if (item.resultUrl) URL.revokeObjectURL(item.resultUrl) }), [])
+  const addFiles = (files) => {
+    setError('')
+    const accepted = []
+    for (const file of files) {
+      const ext = file.name.split('.').pop().toLowerCase()
+      if (!['png','jpg','jpeg','webp','bmp','gif'].includes(ext) || (file.type && !file.type.startsWith('image/'))) { setError(`${file.name}: format tidak didukung. Pilih PNG, JPG, WebP, BMP, atau GIF.`); continue }
+      if (file.size > 30 * 1024 ** 2) { setError(`${file.name}: ukuran file maksimal 30 MB.`); continue }
+      accepted.push({ id: `${Date.now()}-${Math.random()}`, file, src: URL.createObjectURL(file), source: ext.toUpperCase(), resultUrl: '', resultSize: 0, error: '' })
+    }
+    if (accepted.length) setItems(prev => [...prev, ...accepted])
+  }
+  const convertAll = async () => {
+    setBusy(true); setError('')
+    const snapshot = items
+    const converted = await Promise.all(snapshot.map(async item => {
+      const target = format === 'image/jpeg' ? 'JPEG' : format.split('/')[1].toUpperCase()
+      if (item.source === target || (target === 'JPEG' && ['JPG','JPEG'].includes(item.source))) return { ...item, resultUrl: '', resultSize: 0, error: 'Format sumber dan tujuan sama.' }
+      if (format === 'image/svg+xml' && !['PNG','JPG','JPEG'].includes(item.source)) return { ...item, resultUrl: '', resultSize: 0, error: 'SVG tersedia untuk file PNG atau JPG.' }
+      try {
+        const img = await imageFromUrl(item.src)
+        let url, size
+        if (format === 'image/svg+xml') {
+          const data = await readData(item.file)
+          const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${img.naturalWidth}" height="${img.naturalHeight}" viewBox="0 0 ${img.naturalWidth} ${img.naturalHeight}"><image width="100%" height="100%" href="${data}"/></svg>`
+          const blob = new Blob([svg], { type: format }); size = blob.size; url = URL.createObjectURL(blob)
+        } else {
+          const canvas = document.createElement('canvas'); canvas.width = img.naturalWidth; canvas.height = img.naturalHeight
+          const ctx = canvas.getContext('2d'); if (format === 'image/jpeg') { ctx.fillStyle = background; ctx.fillRect(0, 0, canvas.width, canvas.height) } ctx.drawImage(img, 0, 0)
+          const blob = await new Promise((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error('Browser tidak mendukung format hasil ini.')), format, quality / 100))
+          if (blob.type !== format) throw new Error('Format hasil tidak didukung browser ini.')
+          size = blob.size; url = URL.createObjectURL(blob)
+        }
+        return { ...item, resultUrl: url, resultSize: size, error: '' }
+      } catch (e) { return { ...item, resultUrl: '', resultSize: 0, error: e.message || 'Konversi gagal. File mungkin rusak atau format tidak didukung.' } }
+    }))
+    converted.forEach(item => { const old = snapshot.find(x => x.id === item.id); if (old?.resultUrl) URL.revokeObjectURL(old.resultUrl) })
+    setItems(converted); setBusy(false)
+    if (converted.some(x => x.resultUrl)) notify('Konversi gambar berhasil.')
+  }
+  const extOut = format === 'image/jpeg' ? 'jpg' : format === 'image/svg+xml' ? 'svg' : format.split('/')[1]
+  const downloadAll = async () => { for (const item of items.filter(x => x.resultUrl)) { download(item.resultUrl, item.file.name.replace(/\.[^.]+$/, `.${extOut}`)); await new Promise(r => setTimeout(r, 250)) } }
+  return <ToolLayout title="Image Converter" desc="Konversi gambar langsung di browser Anda, tanpa mengunggah file." icon={FileImage}>
+    <div className="work-card converter-card"><div className="work-card-header"><h2>Pilih gambar</h2><span className="file-support">PNG · JPG · WEBP · BMP · GIF</span></div>
+      <Dropzone accept="image/png,image/jpeg,image/webp,image/bmp,image/gif" multiple onFiles={addFiles} label="Pilih gambar" hint="Maks. 30 MB per gambar · Banyak file sekaligus" />
+      {error && <p className="error-message" role="alert">{error}</p>}
+      {items.length > 0 && <><div className="converter-controls">
+        <div className="form-field"><label htmlFor="converter-format">Format tujuan</label><div className="select-wrap"><select id="converter-format" value={format} onChange={e => setFormat(e.target.value)}><option value="image/png">PNG</option><option value="image/jpeg">JPG / JPEG</option><option value="image/webp">WebP</option><option value="image/svg+xml">SVG (gambar tertanam)</option></select><ChevronDown size={16}/></div></div>
+        {format === 'image/jpeg' && <><div className="form-field"><label htmlFor="converter-quality">Kualitas JPG <strong className="value-tag">{quality}%</strong></label><input id="converter-quality" className="range-input" type="range" min="1" max="100" value={quality} onChange={e => setQuality(Number(e.target.value))}/></div><div className="form-field"><label htmlFor="converter-bg">Warna latar JPG</label><ColorPicker value={background} onChange={setBackground}/><small>Transparansi akan diisi dengan warna ini.</small></div></>}
+        <div className="converter-actions"><button className="button primary" onClick={convertAll} disabled={busy}>{busy ? <><span className="spinner light"/> Mengonversi…</> : <><Layers size={16}/> Konversi {items.length} gambar</>}</button><button className="button secondary" onClick={downloadAll} disabled={!items.some(x => x.resultUrl) || busy}><ArrowDown size={16}/> Unduh semua</button><button className="text-button" onClick={() => { items.forEach(x => { URL.revokeObjectURL(x.src); if (x.resultUrl) URL.revokeObjectURL(x.resultUrl) }); setItems([]); setError('') }}><X size={15}/> Reset</button></div>
+      </div><div className="converter-list">{items.map(item => { const out = item.resultUrl ? item.resultSize : 0; const change = out ? Math.round((item.file.size - out) / item.file.size * 100) : 0; return <article className="converter-item" key={item.id}><img src={item.src} alt={`Pratinjau ${item.file.name}`} /><div className="converter-info"><b title={item.file.name}>{item.file.name}</b><small>{formatBytes(item.file.size)} · {item.source} → {format.split('/')[1].toUpperCase()}</small>{item.error ? <small className="error-inline" role="alert">{item.error}</small> : out > 0 && <small className="success-inline">{formatBytes(out)} · {change >= 0 ? `${change}% lebih kecil` : `${Math.abs(change)}% lebih besar`}</small>}</div>{item.resultUrl && <button className="button secondary small" onClick={() => download(item.resultUrl, item.file.name.replace(/\.[^.]+$/, `.${extOut}`))} aria-label={`Unduh ${item.file.name}`}><ArrowDown size={15}/> Unduh</button>}</article> })}</div></>}
+    </div>
+  </ToolLayout>
+}
 
 function QrTool({ notify }) {
   const [text, setText] = useState('https://toolify.app'), [type, setType] = useState('URL'), [fg, setFg] = useState('#25214f'), [bg, setBg] = useState('#ffffff'), [size, setSize] = useState(320), [logo, setLogo] = useState(''), [data, setData] = useState(''), [error, setError] = useState('')
