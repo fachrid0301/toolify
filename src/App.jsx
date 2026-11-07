@@ -1,8 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, ChevronDown, FileImage, FileText, Image, ImageDown, Layers, LockKeyhole, Menu, Moon, QrCode, ShieldCheck, Sparkles, Sun, Upload, X } from 'lucide-react'
 import QRCode from 'qrcode'
 import { jsPDF } from 'jspdf'
+import ToastNotification from './components/ToastNotification.jsx'
+
+const AiToolsPage = lazy(() => import('./pages/AiTools.jsx'))
+const BackgroundRemoverPage = lazy(() => import('./pages/AiTools.jsx').then(module => ({ default: module.BackgroundRemoverPage })))
 
 const tools = [
   { path: '/image-compressor', title: 'Kompres Gambar', desc: 'Perkecil ukuran gambar tanpa mengorbankan kualitas.', icon: ImageDown, tint: 'lavender', tag: 'Hemat ruang' },
@@ -23,22 +27,27 @@ function App() {
     <header className="navbar"><div className="nav-inner">
       <Link to="/" className="brand"><span className="brand-mark"><Sparkles size={19} fill="currentColor" /></span><span>toolify<span className="brand-dot">.</span></span></Link>
       <button className="mobile-menu icon-button" onClick={() => setMenuOpen(!menuOpen)} aria-label="Buka navigasi">{menuOpen ? <X /> : <Menu />}</button>
-      <nav className={menuOpen ? 'nav-links open' : 'nav-links'}><NavLink to="/" end>Beranda</NavLink><a href="/#tools">Tools <ChevronDown size={14} /></a><NavLink to="/about">Tentang</NavLink><NavLink to="/contact">Kontak</NavLink><button className="theme-button" onClick={() => setDark(!dark)} aria-label="Ganti tema">{dark ? <Sun size={17} /> : <Moon size={17} />}</button></nav>
+      <nav className={menuOpen ? 'nav-links open' : 'nav-links'}><NavLink to="/" end>Beranda</NavLink><a href="/#tools">Tools <ChevronDown size={14} /></a><NavLink to="/ai-tools">AI Tools <Sparkles size={14}/></NavLink><NavLink to="/about">Tentang</NavLink><NavLink to="/contact">Kontak</NavLink><button className="theme-button" onClick={() => setDark(!dark)} aria-label="Ganti tema">{dark ? <Sun size={17} /> : <Moon size={17} />}</button></nav>
     </div></header>
-    <main><Routes>
+    <main><Suspense fallback={<div className="ai-route-loading"><span className="spinner"/> Memuat tool...</div>}><Routes>
       <Route path="/" element={<Home />} />
       <Route path="/image-compressor" element={<Compressor notify={notify} />} />
       <Route path="/image-converter" element={<ImageConverter notify={notify} />} />
       <Route path="/qr-generator" element={<QrTool notify={notify} />} />
       <Route path="/jpg-to-pdf" element={<PdfTool notify={notify} />} />
+      <Route path="/ai-tools" element={<AiToolsPage />} />
+      <Route path="/ai-background-remover" element={<BackgroundRemoverPage />} />
+      <Route path="/ai-image-upscaler" element={<InfoPage title="AI Image Upscaler" eyebrow="SEGERA HADIR" text="Tool upscaler sedang disiapkan." />} />
+      <Route path="/ai-image-enhancer" element={<InfoPage title="AI Image Enhancer" eyebrow="SEGERA HADIR" text="Tool image enhancer sedang disiapkan." />} />
+      <Route path="/ai-photo-restoration" element={<InfoPage title="AI Photo Restoration" eyebrow="SEGERA HADIR" text="Tool photo restoration sedang disiapkan." />} />
       <Route path="/about" element={<InfoPage title="Tentang Toolify" eyebrow="ALAT YANG MEMUDAHKAN" text="Toolify menyatukan alat online sehari-hari dalam satu tempat yang sederhana. Kompres gambar, buat QR code, dan ubah gambar menjadi PDF langsung dari browser Anda." />} />
       <Route path="/contact" element={<InfoPage title="Hubungi kami" eyebrow="KAMI SIAP MEMBANTU" text="Punya pertanyaan atau saran untuk Toolify? Kirimkan email ke halo@toolify.app. Kami senang mendengar masukan Anda." />} />
       <Route path="/privacy-policy" element={<InfoPage title="Kebijakan Privasi" eyebrow="PRIVASI ANDA PENTING" text="File yang diproses oleh Toolify tetap berada di perangkat Anda. Pemrosesan gambar, QR code, dan PDF berlangsung di browser; kami tidak mengunggah atau menyimpan file tersebut di server." />} />
       <Route path="/terms-of-service" element={<InfoPage title="Ketentuan Layanan" eyebrow="PENGGUNAAN TOOLIFY" text="Toolify menyediakan alat bantu online apa adanya. Anda bertanggung jawab atas file dan konten yang diproses serta memastikan penggunaan layanan sesuai hukum yang berlaku." />} />
       <Route path="*" element={<InfoPage title="Halaman tidak ditemukan" eyebrow="404" text="Halaman yang Anda cari tidak tersedia." />} />
-    </Routes></main>
+    </Routes></Suspense></main>
     <Footer />
-    {toast && <div className="toast"><Check size={18} />{toast}</div>}
+    <ToastNotification message={toast}/>
   </div>
 }
 
