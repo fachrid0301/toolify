@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom'
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, ChevronDown, FileImage, FileText, Image, ImageDown, Layers, LockKeyhole, Menu, Moon, QrCode, ShieldCheck, Sparkles, Sun, Upload, X } from 'lucide-react'
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, ChevronDown, FileImage, FileText, Image, ImageDown, Layers, LockKeyhole, Menu, Moon, QrCode, Scissors, ShieldCheck, Sparkles, Sun, Upload, WandSparkles, X } from 'lucide-react'
 import QRCode from 'qrcode'
 import { jsPDF } from 'jspdf'
 import ToastNotification from './components/ToastNotification.jsx'
@@ -13,6 +13,10 @@ const tools = [
   { path: '/image-converter', title: 'Image Converter', desc: 'Ubah format PNG, JPG, WebP, GIF, dan BMP dengan mudah.', icon: FileImage, tint: 'mint', tag: '8 format' },
   { path: '/qr-generator', title: 'QR Code Generator', desc: 'Buat QR code kustom untuk tautan, Wi-Fi, dan lainnya.', icon: QrCode, tint: 'mint', tag: 'Mudah dibagikan' },
   { path: '/jpg-to-pdf', title: 'JPG ke PDF', desc: 'Gabungkan gambar menjadi PDF dalam beberapa klik.', icon: FileText, tint: 'peach', tag: 'Siap diunduh' },
+  { path: '/ai-background-remover', title: 'AI Background Remover', desc: 'Hapus background foto otomatis dengan AI, langsung di browser.', icon: Scissors, tint: 'lavender', tag: 'AI · Free', ai: true },
+  { path: '/ai-image-upscaler', title: 'AI Image Upscaler', desc: 'Tingkatkan resolusi gambar dengan pemrosesan AI lokal.', icon: Image, tint: 'mint', tag: 'AI · 2× / 4×', ai: true, comingSoon: true },
+  { path: '/ai-image-enhancer', title: 'AI Image Enhancer', desc: 'Atur brightness, contrast, sharpness, dan saturation.', icon: WandSparkles, tint: 'peach', tag: 'AI · Enhance', ai: true, comingSoon: true },
+  { path: '/ai-photo-restoration', title: 'AI Photo Restoration', desc: 'Pulihkan foto lama dan kurangi noise dengan AI.', icon: Sparkles, tint: 'lavender', tag: 'AI · Restore', ai: true, comingSoon: true },
 ]
 
 function App() {
@@ -56,14 +60,14 @@ function Home() {
     <section className="hero"><div className="hero-glow glow-one"/><div className="hero-glow glow-two"/><div className="hero-content"><div className="eyebrow-pill"><span className="pulse-dot"/> ALAT ONLINE, TANPA RIBET</div><h1>Your Everyday Online<br /><span>Tools, Made Simple</span></h1><p>Kompres gambar, buat QR code, dan ubah gambar menjadi PDF — semua dalam satu tempat.</p><div className="hero-actions"><a className="button primary" href="#tools">Mulai gunakan <ArrowRight size={17}/></a><Link className="button secondary" to="/about">Kenali Toolify</Link></div><div className="hero-trust"><span><ShieldCheck size={16}/> Privat di perangkat Anda</span><span><Sparkles size={16}/> Gratis digunakan</span></div></div>
     <div className="hero-art" aria-hidden="true"><div className="art-orbit orbit-a"/><div className="art-orbit orbit-b"/><div className="art-center"><span className="art-spark"><Sparkles size={38} fill="currentColor"/></span></div><div className="float-card card-image"><span className="mini-icon lavender"><ImageDown size={19}/></span><div><b>image.jpg</b><small>2.4 MB → 840 KB</small></div><span className="saved">−65%</span></div><div className="float-card card-qr"><span className="mini-icon mint"><QrCode size={20}/></span><div><b>QR Code</b><small>Siap dipindai</small></div><span className="tiny-check"><Check size={13}/></span></div><div className="float-card card-pdf"><span className="mini-icon peach"><FileText size={19}/></span><div><b>dokumen.pdf</b><small>3 halaman</small></div></div><div className="art-dot dot-a"/><div className="art-dot dot-b"/></div>
     </section>
-    <section className="tool-section" id="tools"><div className="section-heading"><div><div className="eyebrow">DIRANCANG UNTUK HARIAN</div><h2>Alat praktis, hasil maksimal</h2><p>Semua yang Anda butuhkan, tanpa perlu instalasi.</p></div><div className="tools-count"><span>04</span><small>tools tersedia</small></div></div><div className="tool-grid">{tools.map((tool, i) => <ToolCard key={tool.path} tool={tool} index={i}/>)}</div><div className="ad-slot"><span className="ad-label">ADVERTISEMENT</span><div className="ad-content"><span className="ad-icon"><Sparkles size={19}/></span><div><b>Ruang untuk hal-hal baik.</b><p>Area ini mungkin menampilkan iklan di masa mendatang.</p></div><span className="ad-badge">SPONSORED SPACE</span></div></div></section>
+    <section className="tool-section" id="tools"><div className="section-heading"><div><div className="eyebrow">TOOLS HARIAN & AI</div><h2>Alat praktis, hasil maksimal</h2><p>Tools gratis untuk kebutuhan sehari-hari dan pengolahan gambar.</p></div><div className="tools-count"><span>{String(tools.length).padStart(2, '0')}</span><small>tools</small></div></div><div className="tool-grid">{tools.map((tool, i) => <ToolCard key={tool.path} tool={tool} index={i}/>)}</div><div className="ad-slot"><span className="ad-label">ADVERTISEMENT</span><div className="ad-content"><span className="ad-icon"><Sparkles size={19}/></span><div><b>Ruang untuk hal-hal baik.</b><p>Area ini mungkin menampilkan iklan di masa mendatang.</p></div><span className="ad-badge">SPONSORED SPACE</span></div></div></section>
     <section className="privacy-banner"><div className="privacy-icon"><LockKeyhole size={22}/></div><div><h3>File Anda tetap milik Anda.</h3><p>Semua proses berlangsung langsung di browser. File tidak diunggah ke server kami.</p></div><div className="privacy-seal"><ShieldCheck size={18}/> Pemrosesan privat</div></section>
   </>
 }
 
 function ToolCard({ tool, index }) {
   const Icon = tool.icon
-  return <article className={`tool-card card-${index}`}><div className="tool-card-top"><span className={`tool-icon ${tool.tint}`}><Icon size={22}/></span><span className="tool-tag">{tool.tag}</span></div><h3>{tool.title}</h3><p>{tool.desc}</p><Link to={tool.path} className="card-link">Buka alat <ArrowRight size={16}/></Link><div className={`card-decoration ${tool.tint}`}><Icon size={92}/></div></article>
+  return <article className={`tool-card card-${index} ${tool.ai ? 'ai-home-card' : ''} ${tool.comingSoon ? 'coming-soon-card' : ''}`}><div className="tool-card-top"><span className={`tool-icon ${tool.tint}`}><Icon size={22}/></span><span className="tool-tag">{tool.tag}</span></div><h3>{tool.title}</h3><p>{tool.desc}</p>{tool.comingSoon ? <span className="coming-soon-label">Segera hadir</span> : <Link to={tool.path} className="card-link">Buka alat <ArrowRight size={16}/></Link>}<div className={`card-decoration ${tool.tint}`}><Icon size={92}/></div></article>
 }
 
 function ToolLayout({ title, desc, icon: Icon, children }) {
