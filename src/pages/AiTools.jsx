@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, useEffect, useRef, useState } from 'react'
 import { ArrowDown, ArrowRight, Image as ImageIcon, Scissors, Sparkles, WandSparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import LoadingButton from '../components/LoadingButton.jsx'
